@@ -2,7 +2,8 @@
 
 SAGE is plug-and-play. A task is a tiny self-contained problem the agent edits code
 for. Adding one is **four steps** — copy the shape of an existing task
-(`example_regression` is the cleanest template). Everything lives under `sage/`.
+(`magic` is a clean, minimal template). Everything lives under `sage/`. The harness
+also supports **regression** (`metric="r2"`) — return continuous `y` from the loader.
 
 ## 1. Write the data loader — `task_data.py`
 

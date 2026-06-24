@@ -89,13 +89,6 @@ TASKS: dict[str, TaskSpec] = {
         regimes=[("low  (full data)", Fidelity("full", 1.0, {"train_frac": 1.0})),
                  ("med  (25% data)", Fidelity("med", 1.0, {"train_frac": 0.25})),
                  ("high (8% data)", Fidelity("high", 1.0, {"train_frac": 0.08}))]),
-    # REGRESSION template (sklearn diabetes). metric="r2"; a worked example showing
-    # the same pipeline handles regression. Teammates copy this shape for their tasks.
-    "example_regression": TaskSpec(
-        "example_regression", time_limit=60.0, metric="r2",
-        regimes=[("low  (full data)", Fidelity("full", 1.0, {"train_frac": 1.0})),
-                 ("med  (40% data)", Fidelity("med", 1.0, {"train_frac": 0.40})),
-                 ("high (15% data)", Fidelity("high", 1.0, {"train_frac": 0.15}))]),
 }
 
 

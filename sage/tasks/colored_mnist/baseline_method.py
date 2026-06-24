@@ -5,8 +5,8 @@ it really trains and scores, but leaves obvious headroom (a CNN, an MLP, more ep
 normalization, ...). The agent's job is to EDIT this file to raise held-out accuracy.
 
 Harness contract (do not rely on anything outside it):
-  * fit(X, y, seed): X is a float tensor (N, 3, 28, 28) in [0,1]; y is long (N,) in
-    {0,...,9}. Train a model. Seed ALL randomness from `seed`.
+  * fit(X, y, seed): X is a float tensor (N, 2, 28, 28) in [0,1]; y is long (N,) in
+    {0,1}. Train a model. Seed ALL randomness from `seed`.
   * predict(X): return predicted class indices, shape (N,).
   * CPU only. No file or network access. The harness enforces a wall-clock limit.
 """
@@ -23,7 +23,7 @@ class MyMethod(BaseMethod):
     def fit(self, X, y, seed: int) -> None:
         torch.manual_seed(seed)
         n, c, h, w = X.shape
-        self.model = nn.Linear(c * h * w, 10).to(DEVICE)
+        self.model = nn.Linear(c * h * w, 2).to(DEVICE)
         opt = torch.optim.SGD(self.model.parameters(), lr=0.05)
         loss_fn = nn.CrossEntropyLoss()
         Xf = X.reshape(n, -1)

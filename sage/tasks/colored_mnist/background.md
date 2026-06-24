@@ -1,15 +1,16 @@
-# Task: Colored handwritten-digit classification (10 classes)
+# Task: Colored-digit binary classification
 
 ## The downstream task
-Classify 28x28 colored images of handwritten digits into the 10 digit classes
-(0-9). Higher held-out accuracy is better. A convolutional network is a natural fit,
-but that is your choice, not a requirement.
+Classify 28x28 two-channel (colored) images of handwritten digits into 2 classes.
+Higher held-out accuracy is better. A convolutional network is a natural fit, but
+that is your choice, not a requirement.
 
 ## What you are given
-The harness hands `fit` a float tensor `X` of shape **(N, 3, 28, 28)** with pixel
-values in **[0, 1]** (three color channels), and integer labels `y` in `{0, ..., 9}`
-(the true digit). You may reshape, normalize, or augment as you see fit. The held-out
-test set is owned by the harness and is never visible to your code.
+The harness hands `fit` a float tensor `X` of shape **(N, 2, 28, 28)** with pixel
+values in **[0, 1]** (two color channels), and integer labels `y` in `{0, 1}`. The
+labels are moderately noisy, so do not expect to reach perfect accuracy. You may
+reshape, normalize, or augment as you see fit. The held-out test set is owned by
+the harness and is never visible to your code.
 
 ## The baseline (primary code you edit)
 A linear (softmax) classifier on the flattened pixels, 3 epochs of plain SGD. It

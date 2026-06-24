@@ -8,11 +8,11 @@ replication audit (many seeds x many evals) explode for no gain to the gate stor
 
   fashionmnist  -- raw images (N, 1, 28, 28) in [0,1], 10 classes  (CNN possible)
   magic         -- tabular (N, 10) z-scored, 2 classes (gamma signal vs hadron bg)
-  colored_mnist -- RGB images (N, 3, 28, 28) in [0,1], 10 classes (the MNIST digit),
-                   with a SPURIOUS color<->group correlation (low digits 0-4 mostly
-                   one color, high digits 5-9 the other) that REVERSES between
-                   train/val and test. A model that reads color instead of shape wins
-                   on train/val and fails on test (see loader).
+  colored_mnist -- 2-channel images (N, 2, 28, 28) in [0,1], 2 classes, with a SPURIOUS
+                   non-linear channel-match cue correlated with the label in train/val
+                   and REVERSED at test: a CNN exploits the cue (high val) then COLLAPSES
+                   on the flipped test, while a linear shape-reader stays robust -- the
+                   failure-node stress test (see loader).
 """
 
 from __future__ import annotations
@@ -79,91 +79,84 @@ def load_magic(n_total: int = 10_000) -> dict:
                  sc.transform(X_te), y_te)
 
 
-def load_diabetes() -> dict:
-    """sklearn diabetes: REGRESSION template (10 features -> continuous target).
-    Bundled, no download. The 'example_regression' task; a shape teammates copy."""
-    from sklearn.datasets import load_diabetes as _ld
-    from sklearn.preprocessing import StandardScaler
-    d = _ld()
-    X = d.data.astype(np.float32)
-    y = d.target.astype(np.float32)
-    X_tr, y_tr, X_va, y_va, X_te, y_te = _stratified_split(X, y, None, regression=True)
-    sc = StandardScaler().fit(X_tr)
-    return _pack(sc.transform(X_tr), y_tr, sc.transform(X_va), y_va,
-                 sc.transform(X_te), y_te, regression=True)
+def _colorize_match(images, labels, e, rng):
+    """Two-channel images whose SPURIOUS feature is a NON-LINEAR channel interaction.
 
+    Channel 0 always holds the true digit (this carries the SHAPE signal -- the
+    invariant cue). Channel 1 either MATCHES it (digits identical) or holds a
+    DIFFERENT random digit, selected by the spurious bit:
 
-def _colorize_group(images, digits, p_red_A, rng):
-    """Render each grayscale digit into ONE color channel of an RGB image: red =
-    channel 0, green = channel 1, the third channel always 0. Color is a SPURIOUS
-    feature correlated with the digit's GROUP (A = digits 0-4, B = digits 5-9):
+        match = label XOR Bernoulli(e)      (1 -> channels match, 0 -> they differ)
 
-        P(red) = p_red_A    for group A
-        P(red) = 1-p_red_A  for group B
+    so "do the two channels match" predicts the label with probability 1-e. Crucially
+    BOTH classes put a clean digit in each channel, so the per-pixel/per-channel
+    MARGINALS are identical: the spurious cue is readable ONLY from the joint relation
+    between the channels (an interaction), which a CNN/MLP can learn but a LINEAR model
+    cannot. That capability gap is deliberate -- it leaves validation HEADROOM above
+    the (linear, shape-only) baseline so a CNN can climb by exploiting the spurious
+    cue, and the causal gate gets a real apparent win to (correctly, on val) accept.
 
-    With p_red_A = 0.90, group A is mostly red and group B mostly green on train/val;
-    passing p_red_A = 0.10 (test) reverses it. Color is NEVER stored as a label -- it
-    is purely an artifact baked into the pixels. A model that reads color instead of
-    shape to decide the group does well on train/val and fails on the reversed test.
-
-      images: (N,28,28) float in [0,1]; digits: (N,) int 0-9.  Returns (N,3,28,28).
+      images: (N,28,28) float in [0,1]; labels: (N,) binary {0,1}; e: cue-flip prob.
+    Returns (N,2,28,28) float32.
     """
-    is_A = digits < 5
-    p_red = np.where(is_A, p_red_A, 1.0 - p_red_A)
-    red = rng.random(len(digits)) < p_red
-    out = np.zeros((len(digits), 3, 28, 28), dtype=np.float32)
-    out[red, 0] = images[red]            # red channel
-    out[~red, 1] = images[~red]          # green channel
+    n = len(labels)
+    match = np.logical_xor(labels.astype(bool), rng.random(n) < e)   # spurious bit
+    other = images[rng.permutation(n)]                               # a different digit
+    out = np.zeros((n, 2, 28, 28), dtype=np.float32)
+    out[:, 0] = images
+    out[:, 1] = np.where(match[:, None, None], images, other)
     return out
 
 
-def load_colored_mnist(n_train_total: int = 6_000, n_test: int = 2_000,
-                       p: float = 0.90) -> dict:
-    """Colored MNIST (cf. Arjovsky et al., IRM) -- a SPURIOUS-CORRELATION dataset.
+def load_colored_mnist(n_total: int = 5_000, e_train: float = 0.10,
+                       e_val: float = 0.10, e_test: float = 0.90,
+                       label_noise: float = 0.25) -> dict:
+    """Colored MNIST (cf. Arjovsky et al., IRM) -- a SPURIOUS-CORRELATION stress test.
 
-    The task is the standard 10-class MNIST digit (label 0-9). A spurious COLOR (which
-    of two RGB channels holds the digit; see _colorize_group) is correlated with the
-    digit's GROUP -- low digits 0-4 vs high digits 5-9 -- at strength `p`:
+    The binary label is digit>=5, then flipped with prob `label_noise` (0.25), so a
+    purely SHAPE-based predictor is capped around ~1-label_noise. A two-channel
+    SPURIOUS cue (whether the channels match; see _colorize_match) is then correlated
+    with the (noisy) label:
 
-      * train + val (from MNIST train): group A mostly red, group B mostly green (p=0.90)
-      * test        (from MNIST test):  the correlation is REVERSED (1-p = 0.10)
+      * train + val: the cue matches the label with prob 1-e_train/val = 0.90
+      * test:        the cue matches the label with prob 1-e_test     = 0.10  (FLIPPED)
 
-    So a classifier that leans on color to decide the group scores well on train/val
-    and FAILS systematically on the held-out test, whose colors are flipped. The harness
-    owns the test split; the agent's code never sees it. (Observed: a linear baseline
-    overfits to color and collapses on test ~0.81 val -> ~0.09 test, while a CNN learns
-    more shape and is far more robust ~0.93 val -> ~0.80 test.)
+    On train/val the spurious cue (0.90) beats the shape (~0.75), so any model that
+    latches onto it scores ~0.90 in validation -- stably, across every seed -- yet
+    COLLAPSES to ~0.10 on the held-out test, whose correlation is reversed. train and
+    val share one distribution, so the causal gate's seed re-testing is working
+    CORRECTLY (the val gains are real and reproducible); the failure is distributional,
+    not seed noise -- which is exactly what makes this a clean stress test of what the
+    seed-gate can and cannot catch. The cue is a NON-LINEAR channel interaction, so the
+    linear baseline can only read shape (~0.64 val, and ~0.64 test -- robust), leaving
+    headroom a CNN fills by exploiting the spurious cue. The harness owns the test
+    split; the agent's code never sees it.
     """
     from torchvision import datasets
     from sklearn.model_selection import train_test_split
-    rng = np.random.default_rng(0)
     tr = datasets.MNIST(root=str(_MNIST_ROOT), train=True, download=True)
-    Xtr_all = tr.data.numpy().astype(np.float32) / 255.0      # (60000,28,28)
-    dtr_all = tr.targets.numpy()
-    if n_train_total is not None and n_train_total < len(dtr_all):
-        sel = rng.choice(len(dtr_all), size=n_train_total, replace=False)
-        Xtr_all, dtr_all = Xtr_all[sel], dtr_all[sel]
-    # train + val share the p=0.90 environment; stratify the split by digit
-    idx_tr, idx_va = train_test_split(np.arange(len(dtr_all)), test_size=0.25,
-                                      random_state=0, stratify=dtr_all)
-    te = datasets.MNIST(root=str(_MNIST_ROOT), train=False, download=True)
-    Xte_all = te.data.numpy().astype(np.float32) / 255.0      # (10000,28,28)
-    dte_all = te.targets.numpy()
-    if n_test is not None and n_test < len(dte_all):
-        sel = rng.choice(len(dte_all), size=n_test, replace=False)
-        Xte_all, dte_all = Xte_all[sel], dte_all[sel]
-
-    Xtr = _colorize_group(Xtr_all[idx_tr], dtr_all[idx_tr], p, rng)
-    Xva = _colorize_group(Xtr_all[idx_va], dtr_all[idx_va], p, rng)
-    Xte = _colorize_group(Xte_all, dte_all, 1.0 - p, rng)     # REVERSED environment
-    return _pack(Xtr, dtr_all[idx_tr], Xva, dtr_all[idx_va], Xte, dte_all)
+    X = tr.data.numpy().astype(np.float32) / 255.0            # (60000,28,28)
+    digit = tr.targets.numpy()
+    rng = np.random.default_rng(0)
+    if n_total is not None and n_total < len(digit):
+        sel = rng.choice(len(digit), size=n_total, replace=False)
+        X, digit = X[sel], digit[sel]
+    y = (digit >= 5).astype(np.int64)                         # shape label
+    y = np.logical_xor(y.astype(bool), rng.random(len(y)) < label_noise).astype(np.int64)
+    idx = np.arange(len(y))
+    idx_tmp, idx_te = train_test_split(idx, test_size=0.20, random_state=0, stratify=y)
+    idx_tr, idx_va = train_test_split(idx_tmp, test_size=0.25, random_state=0,
+                                      stratify=y[idx_tmp])
+    Xtr = _colorize_match(X[idx_tr], y[idx_tr], e_train, rng)
+    Xva = _colorize_match(X[idx_va], y[idx_va], e_val, rng)
+    Xte = _colorize_match(X[idx_te], y[idx_te], e_test, rng)
+    return _pack(Xtr, y[idx_tr], Xva, y[idx_va], Xte, y[idx_te])
 
 
 # Loader key MUST match the TaskSpec name in local_task.py (the harness loads data
-# by task name). "example_regression" is the diabetes regression template.
+# by task name).
 LOADERS = {"fashionmnist": load_fashionmnist, "magic": load_magic,
-           "colored_mnist": load_colored_mnist,
-           "example_regression": load_diabetes}
+           "colored_mnist": load_colored_mnist}
 
 
 def load_task(name: str) -> dict:

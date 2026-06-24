@@ -12,11 +12,21 @@ and the skeptic noise-sweep figure (`regime_curve.png`).
 |---|---|---|
 | **FashionMNIST** | 0.749 → **0.887** | linear classifier → CNN (BatchNorm, augmentation, label smoothing) |
 | **MAGIC Gamma Telescope** | 0.785 → **0.868** | logistic regression → 2-layer MLP |
-| **Colored MNIST** | 0.091 → **0.965** | linear (keys on color, collapses on the flipped-color test) → CNN that learns digit **shape** and stays robust |
 
 Open each `best_method.py` for the exact code the agent produced, and `methods.csv`
 for the full pool (intent + scores) — i.e. the trajectory from baseline to the final
 method.
+
+### Colored MNIST — the failure node (`colored_mnist/`)
+
+A spurious-correlation stress test where the agent gets **fooled**. The agent's CNN
+raises validation but **collapses on the reversed test** (val **0.876 → test 0.130**);
+the *only* robust model is the linear baseline (val 0.61 / test 0.58), which looks
+**worst** on validation — so optimizing validation selects the trap. The skeptic
+accepts it because the val gain is real and seed-stable; the failure is distributional,
+not seed noise. **Re-testing buys reproducibility, not validity.** See
+`accepted_method.py` (the model the gate accepted), `methods.csv` (the val↑/test↓
+inverse trend), and `regime_curve.png`.
 
 ## MLRC Machine Unlearning — CIFAR-10, named benchmark (`mlrc_unlearning/`)
 

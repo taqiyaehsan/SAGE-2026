@@ -73,8 +73,7 @@ python run_method.py --task fashionmnist --method tasks/fashionmnist/baseline_me
 |---|---|---|---|
 | `fashionmnist` | vision | images | accuracy |
 | `magic` | astrophysics (MAGIC Gamma Telescope) | tabular | accuracy |
-| `colored_mnist` | spurious-correlation stress test | images | accuracy |
-| `example_regression` | template (sklearn diabetes) | tabular | R² |
+| `colored_mnist` | spurious-correlation **failure node** (2-channel match cue) | images | accuracy |
 
 **Bring your own task** — it's plug-and-play (a `background.md`, a baseline
 `baseline_method.py`, a loader, one `TaskSpec`). See

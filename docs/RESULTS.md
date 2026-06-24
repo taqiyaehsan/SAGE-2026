@@ -6,18 +6,15 @@ not replicate, while the causal accept rule (the skeptic) does not.** We show th
 on two team-authored tasks — FashionMNIST (vision) and MAGIC Gamma Telescope
 (tabular) — both local, CPU, stationary.
 
-A third task, **Colored MNIST**, is a **spurious-correlation** stress test (section 5).
-A color feature is *spuriously* correlated with the digit's group in train/val but the
-correlation **reverses** at test, so a model that keys on color instead of shape wins
-in-distribution and fails under the shift. It shows two things: (a) a weak baseline
-latches onto the spurious color and **collapses** on the reversed test, while the
-agent's CNN learns the **invariant shape** signal and stays robust — real progress
-that also *generalizes*; and (b) even when every candidate is near-tied, the causal
-gate still cuts the greedy false-positive rate under evaluation noise. (Honest note:
-train and val share the same spurious correlation, so the seed-gate re-tests on an
-in-distribution signal — a win that itself relied on the spurious cue would replicate
-across seeds and only a *shifted* test set would expose it. The right held-out
-distribution matters as much as more seeds.)
+A third task, **Colored MNIST**, is a **spurious-correlation** stress test and the
+**failure node** (section 5). A non-linear channel-match cue is correlated with the
+label in train/val and **reversed** at test. The agent's CNNs exploit the cue — raising
+validation while **collapsing** on the reversed test — and the *only* robust model (a
+linear shape-reader) looks worst on validation, so optimizing validation selects the
+trap. The skeptic re-tests over seeds on the validation distribution, so it (correctly)
+accepts the seed-stable validation gain — but the failure is distributional, not seed
+noise. **Re-testing buys reproducibility, not validity; the fix is a shifted validation
+set, not more seeds.**
 
 The proposed system is the **skeptic**: a coherence gate (culls broken edits before
 any eval) + a **causal accept gate** (re-tests over k seeds, accepts only if the
@@ -117,75 +114,43 @@ are culled cleanly (e.g. the MixUp / extra-conv proposals in section 5).
 
 ---
 
-## 5. Spurious correlation — a cue the agent must learn past (Colored MNIST)
+## 5. The failure node — a spurious cue the agent gets fooled by (Colored MNIST)
 
-**Task (a spurious-correlation stress test).** Standard 10-class MNIST digits rendered
-as 3-channel RGB: each digit is placed entirely in the **red** channel or the **green**
-channel. The COLOR is a **spurious** feature — it is correlated with the digit's GROUP
-(low digits 0–4 vs high digits 5–9): in train and validation, group A is ~90 % red and
-group B ~90 % green; in the held-out test this correlation is **reversed** (group A is
-~90 % green). Color is never stored as a label — it is purely an artifact baked into
-the pixels. So a model that decides the group from **color** instead of **shape** does
-well on train/val and **fails systematically** on the reversed test. This is the
-classic spurious-correlation setup (cf. IRM): the spurious cue (color) is predictive
-in-distribution but anti-predictive under shift, while the invariant cue (digit shape)
-generalizes. The harness owns the test split; the agent never sees it.
+**Task (a spurious-correlation stress test, cf. IRM).** Two-channel 28×28 images.
+Channel 0 always holds the true digit (the invariant **shape** signal); channel 1
+either *matches* it or holds a *different* digit. The binary label is `digit ≥ 5`
+(flipped with 25 % noise, capping a shape-only model near ~0.75). The spurious cue —
+**do the two channels match?** — predicts the label with prob 0.90 in train/val and is
+**reversed** (0.10) in the held-out test. The cue is a NON-LINEAR channel interaction:
+a CNN can read it, a linear model cannot.
 
-**What happened (`sage/results/study_colored_mnist/`, fig `regime_curve_eval.png`):**
+**What happened (`results/colored_mnist/`, fig `regime_curve.png`):**
 
-| idx | method | val | test | GFLOPs |
-|-----|--------|-----|------|--------|
-| **8** *(final accept)* | + capacity CNN | **0.988** | **0.966** | 3876 |
-| 6 | 3-conv CNN | 0.979 | 0.952 | 3230 |
-| 4 | + dropout CNN | 0.979 | 0.937 | 1809 |
-| **1** *(first accept)* | small CNN | 0.977 | 0.936 | 1206 |
-| 2 *(rejected)* | + augmentation | 0.946 | 0.878 | 1809 |
-| **0** | baseline (linear) | **0.827** | **0.092** | 1.3 |
-| 3, 5, 7 | MixUp / extra-conv | *crash* | *crash* | — |
+| method | val | test |
+|--------|-----|------|
+| baseline (linear, reads shape) | 0.607 | **0.581** (robust) |
+| small CNN — *the gate accepts this* | **0.876** | **0.130** (collapses) |
+| +BatchNorm / +aug / deeper CNNs | 0.85–0.87 | 0.13–0.33 |
 
-- **The baseline relies on the spurious color and collapses.** The linear baseline
-  scores 0.827 on validation but **0.092 on the reversed test** — it learned
-  color-specific digit templates, which break entirely once the colors flip (worse
-  than chance under reversal). This is the spurious correlation biting.
-- **The agent learns the invariant (shape) signal and stays robust.** Every accepted
-  CNN raises validation **and** test together — test climbs **0.092 → 0.966**
-  alongside validation. The gate accepts 3 improvements; **all survive** the
-  replication audit and all generalize, with only a small residual spurious gap in the
-  CNNs (~0.02 val−test) that shrinks as they improve.
-- **So here the skeptic accepts genuine, robust progress** — it is *not* fooled,
-  because on this construction a better validation score also means a better test
-  score. (Contrast the honest boundary: if validation itself shared a cue the model
-  could exploit, a seed-stable win could still collapse under shift — the seed-gate
-  re-tests on the *validation* distribution, so the choice of held-out distribution
-  matters as much as more seeds.)
-- **The seed-noise axis still behaves as in sections 3–4.** With the CNNs near-tied
-  (val 0.946–0.988), greedy chases evaluation noise while the causal gate does not:
+- **The agent's CNNs raise validation but collapse on test.** Each CNN exploits the
+  spurious channel-match cue: validation climbs to ~0.88 while the reversed-test score
+  falls to ~0.13. The **only** robust model is the linear baseline (shape-only, val 0.61
+  / test 0.58) — which looks **worst** on validation. So **optimizing validation
+  actively selects the trap.**
+- **The skeptic accepts the trap — and that is the point.** The causal gate re-tests
+  over seeds on the *validation* distribution. The CNN's val gain is **real and
+  reproducible across every seed**, so the gate (correctly, on val) accepts it. But the
+  failure is *distributional*, not seed noise — re-testing on the same distribution
+  cannot see it.
+- **Lesson:** the seed-gate catches false wins from **measurement noise**, not false
+  wins from the **wrong validation distribution**. *Re-testing buys reproducibility, not
+  validity.* The fix is a **shifted** validation set, not more seeds. (The seed-noise
+  axis still behaves as in §3–4 — the causal gate cuts greedy's false-positive rate
+  under evaluation noise; see `results/colored_mnist/regime_curve.png`.)
 
-| eval size | noise σ | greedy FP-rate | causal FP-rate | greedy final acc | causal final acc |
-|-----------|---------|----------------|----------------|------------------|------------------|
-| 2000 | 0.002 | 0.14 | 0.01 | 0.9876 | 0.9876 |
-| 1000 | 0.002 | 0.18 | 0.04 | 0.9874 | 0.9873 |
-| 500  | 0.003 | **0.21** | **0.04** | 0.9863 | 0.9867 |
-| 200  | 0.006 | 0.14 | 0.04 | 0.9838 | 0.9840 |
-| 100  | 0.008 | 0.14 | 0.05 | 0.9814 | 0.9818 |
-| 50   | 0.010 | 0.14 | 0.07 | 0.9780 | 0.9797 |
-
-**Bonus (crash handling):** three proposals hallucinated non-existent torch APIs
-(`Generator` not iterable, `Distribution.sample(generator=…)`) or ran too slowly;
-all were caught and scored as failures (culled by the new scoring-stage timeout),
-not run-killers.
-
-**One-line takeaway:** *on a dataset where color is spuriously correlated with the
-label, a naive baseline latches onto the spurious cue and collapses under
-distribution shift (test 0.09), while the code-editing agent learns the invariant
-shape signal and is far more robust (test 0.97) — and the causal gate still cuts the
-greedy false-positive rate under evaluation noise.*
-
-**One-line takeaway:** *the causal skeptic catches false wins that come from
-measurement noise, but not false wins that come from the wrong validation
-distribution — Colored MNIST shows a +0.27 validation gain the gate accepts and the
-seed audit blesses, which is a −0.45 test collapse. The fix is a shifted held-out
-set, not more seeds.*
+**One-line takeaway:** *Colored MNIST is the failure node — a val 0.61 → 0.88 gain the
+gate accepts and the seed audit blesses is a test 0.58 → 0.13 collapse. The skeptic
+fixes measurement noise, not distribution shift.*
 
 ---
 

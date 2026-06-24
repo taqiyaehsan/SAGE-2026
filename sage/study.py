@@ -23,7 +23,7 @@ Works for classification (accuracy) and regression (R^2) -- metric comes from th
 TaskSpec, and the gates only ever see a scalar where higher is better.
 
 Run:  python study.py <task> [llm] [N_PROPOSALS] [N_SEEDS]
-  tasks: fashionmnist | magic | example_regression | (any registered task)
+  tasks: fashionmnist | magic | colored_mnist | (any registered task)
 """
 
 from __future__ import annotations
