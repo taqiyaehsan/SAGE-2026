@@ -60,3 +60,8 @@ A live greedy-vs-causal head-to-head **diverges** (different accepts → differe
 proposals → confounded). The clean paired ablation is the **replay** design used by the
 local-task `study.py`; on MU, lean on the **within-arm replication audit** and treat a
 live head-to-head as corroboration only.
+
+## References
+
+- **MLRC-Bench** (the Machine-Unlearning benchmark) — <https://github.com/yunx-z/MLRC-Bench>.
+- **CIFAR-10** — Krizhevsky, *Learning Multiple Layers of Features from Tiny Images*, 2009.

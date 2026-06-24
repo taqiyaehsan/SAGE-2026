@@ -124,6 +124,18 @@ and the integrity checks are in [`docs/MACHINE_UNLEARNING.md`](docs/MACHINE_UNLE
 **Important:** that eval can be non-stationary across time windows — read
 [`docs/OBSERVATIONS.md`](docs/OBSERVATIONS.md) before quoting any number.
 
+## Citing the tasks & benchmarks
+
+If you use SAGE or these tasks, please cite the underlying datasets and benchmarks:
+
+- **MLRC-Bench** (Machine-Unlearning task) — <https://github.com/yunx-z/MLRC-Bench>
+- **FashionMNIST** — Xiao, Rasul & Vollgraf, *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*, arXiv:1708.07747 (2017).
+- **MNIST** — LeCun, Cortes & Burges, *The MNIST Database of Handwritten Digits*.
+- **MAGIC Gamma Telescope** — Bock et al., UCI Machine Learning Repository (MAGIC Gamma Telescope Data Set), 2007.
+- **CIFAR-10** — Krizhevsky, *Learning Multiple Layers of Features from Tiny Images*, 2009.
+- **Colored MNIST / spurious correlation** — Arjovsky, Bottou, Gulrajani & Lopez-Paz, *Invariant Risk Minimization*, arXiv:1907.02893 (2019).
+- **Optiver — Trading at the Close** — Kaggle competition, 2023.
+
 ## Authors
 
 Taqiya Ehsan (Rutgers University) · Luyuan Yang (University of Oklahoma) · Md Musfiqur Rahman (Purdue University) ·

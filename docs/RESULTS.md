@@ -208,3 +208,12 @@ python regime_sweep.py colored_mnist eval 8 200
 Each study writes `llm.json` + `methods_llm.csv` (score/Pareto table) +
 `replay_llm.csv` (greedy-vs-causal accept audit); each sweep writes
 `regime_eval.json/.csv` + `regime_curve_eval.png`.
+
+---
+
+## References (datasets)
+
+- **FashionMNIST** — Xiao, Rasul & Vollgraf, *Fashion-MNIST*, arXiv:1708.07747 (2017).
+- **MAGIC Gamma Telescope** — Bock et al., UCI Machine Learning Repository, 2007.
+- **MNIST** — LeCun, Cortes & Burges, *The MNIST Database of Handwritten Digits*.
+- **Colored MNIST / spurious correlation** — Arjovsky et al., *Invariant Risk Minimization*, arXiv:1907.02893 (2019).
