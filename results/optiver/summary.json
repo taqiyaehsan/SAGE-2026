@@ -1,0 +1,144 @@
+{
+  "task": "optiver_direction_mlp_hpo",
+  "dataset": "optiver_direction",
+  "dataset_desc": "Optiver Trading at the Close: binary classification of whether the future closing-auction price movement target is positive, using market microstructure and auction-book features",
+  "n_features": 30,
+  "n_classes": 2,
+  "proposer": "gpt-4.1-mini",
+  "budget_units": 8.0,
+  "n_seeds": 5,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "audit_seeds": 30,
+  "baseline_config": {
+    "hidden": 16,
+    "lr": 0.01,
+    "dropout": 0.0,
+    "weight_decay": 0.0,
+    "epochs": 6,
+    "batch_size": 64,
+    "activation": "relu"
+  },
+  "sweep": [
+    {
+      "regime": "low (full data)",
+      "eval_sd": 0.008629368204659111,
+      "fidelity": "full",
+      "train_subset": null,
+      "baseline_test_mean": 0.5220138847827911,
+      "baseline_test_std": 0.0,
+      "arms": {
+        "greedy": {
+          "n_accepted_mean": 2.2,
+          "n_accepted_std": 0.8366600265340756,
+          "final_true_test_mean": 0.5223805540800094,
+          "final_true_test_std": 0.003257568429549748,
+          "audit": {
+            "n_vanished_mean": 1.0,
+            "n_vanished_std": 0.0,
+            "n_kept_mean": 2.2,
+            "n_kept_std": 0.8366600265340756,
+            "n_survive_mean": 1.2,
+            "n_survive_std": 0.8366600265340756
+          }
+        },
+        "causal": {
+          "n_accepted_mean": 0.0,
+          "n_accepted_std": 0.0,
+          "final_true_test_mean": 0.5220138847827911,
+          "final_true_test_std": 0.0,
+          "audit": {
+            "n_vanished_mean": 0.0,
+            "n_vanished_std": 0.0,
+            "n_kept_mean": 0.0,
+            "n_kept_std": 0.0,
+            "n_survive_mean": 0.0,
+            "n_survive_std": 0.0
+          }
+        }
+      }
+    },
+    {
+      "regime": "med (1200 samples)",
+      "eval_sd": 0.009257473369069222,
+      "fidelity": "med",
+      "train_subset": 1200,
+      "baseline_test_mean": 0.5220138847827911,
+      "baseline_test_std": 0.0,
+      "arms": {
+        "greedy": {
+          "n_accepted_mean": 3.0,
+          "n_accepted_std": 1.224744871391589,
+          "final_true_test_mean": 0.5226138871908188,
+          "final_true_test_std": 0.0015563099746575776,
+          "audit": {
+            "n_vanished_mean": 1.4,
+            "n_vanished_std": 0.8944271909999161,
+            "n_kept_mean": 3.0,
+            "n_kept_std": 1.224744871391589,
+            "n_survive_mean": 1.6,
+            "n_survive_std": 0.5477225575051661
+          }
+        },
+        "causal": {
+          "n_accepted_mean": 1.0,
+          "n_accepted_std": 0.0,
+          "final_true_test_mean": 0.5215527753035227,
+          "final_true_test_std": 0.003495582402120244,
+          "audit": {
+            "n_vanished_mean": 0.8,
+            "n_vanished_std": 0.44721359549995804,
+            "n_kept_mean": 1.0,
+            "n_kept_std": 0.0,
+            "n_survive_mean": 0.2,
+            "n_survive_std": 0.44721359549995804
+          }
+        }
+      }
+    },
+    {
+      "regime": "high (300 samples)",
+      "eval_sd": 0.014840899235564631,
+      "fidelity": "high",
+      "train_subset": 300,
+      "baseline_test_mean": 0.5220138847827911,
+      "baseline_test_std": 0.0,
+      "arms": {
+        "greedy": {
+          "n_accepted_mean": 1.0,
+          "n_accepted_std": 0.0,
+          "final_true_test_mean": 0.522258334159851,
+          "final_true_test_std": 0.0030509867576472478,
+          "audit": {
+            "n_vanished_mean": 1.0,
+            "n_vanished_std": 0.0,
+            "n_kept_mean": 1.0,
+            "n_kept_std": 0.0,
+            "n_survive_mean": 0.0,
+            "n_survive_std": 0.0
+          }
+        },
+        "causal": {
+          "n_accepted_mean": 0.0,
+          "n_accepted_std": 0.0,
+          "final_true_test_mean": 0.5220138847827911,
+          "final_true_test_std": 0.0,
+          "audit": {
+            "n_vanished_mean": 0.0,
+            "n_vanished_std": 0.0,
+            "n_kept_mean": 0.0,
+            "n_kept_std": 0.0,
+            "n_survive_mean": 0.0,
+            "n_survive_std": 0.0
+          }
+        }
+      }
+    }
+  ],
+  "wall_s": 3888.6188352108
+}

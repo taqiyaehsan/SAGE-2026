@@ -23,6 +23,9 @@ On the **MLRC Machine-Unlearning** benchmark the skeptic reaches a better, more 
 result than greedy; under evaluation noise on **FashionMNIST** and **MAGIC** it is fooled
 **2–3× less often**. See [`docs/RESULTS.md`](docs/RESULTS.md).
 
+**Proof — what the agents actually wrote:** the agent-authored methods (verbatim code)
+and their held-out scores for every task are in [`results/`](results/).
+
 ---
 
 ## Quickstart
@@ -111,7 +114,8 @@ sage/
   mlrc_adapter.py · run_mlrc.py · mlrc_background_knowledge.py
   baseline_MyMethod.py · baseline_noise.py · replication_audit_real.py
 docs/
-  ADD_A_TASK.md · RESULTS.md · MACHINE_UNLEARNING.md · OBSERVATIONS.md
+  ADD_A_TASK.md · CUSTOM_AGENT.md · RESULTS.md · MACHINE_UNLEARNING.md · OBSERVATIONS.md
+results/              # PROOF: the agent-written methods (best_method.py) + scores per task
 assets/               # result figures
 ```
 
