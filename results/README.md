@@ -51,4 +51,8 @@ agent made **no measurable progress** (held-out ≈ **0.522**, chance) — there
 signal to find. Included as an honest negative result: on a task with nothing to learn,
 the skeptic correctly banked nothing.
 
+`phantom_wins.png` makes the greedy-vs-skeptic contrast concrete: the **greedy** agent
+still "accepted" **~2 wins per run** (more than half of which **vanish on re-test**;
+100 % at high noise), while the **skeptic** accepted **~none** — the negative control.
+
 > Datasets/benchmarks are cited in the [top-level README](../README.md).
