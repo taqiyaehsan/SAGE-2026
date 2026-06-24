@@ -74,7 +74,7 @@ small to explain a 100× swing. The training path is the remaining explanation.
     residual drift averages out instead of aligning with one arm;
   - re-measure the incumbent adjacent in time to each candidate, so a paired
     comparison cancels slow drift.
-- Re-run the baseline-noise characterization (`skeptic_gate/baseline_noise.py`) in
+- Re-run the baseline-noise characterization (`sage/baseline_noise.py`) in
   the target environment and confirm the distribution is stationary **before**
   trusting any arm comparison.
 
