@@ -31,8 +31,8 @@ from gates import (Budget, Incumbent, GreedyPolicy, CausalPolicy, CoherenceWrapp
                    Fidelity, FULL)
 from mlrc_adapter import MLRCWorld, OpenAIProposer, Candidate, REPO_ROOT, METHOD_FILE
 
-RESULTS_ROOT = REPO_ROOT / "skeptic_gate" / "results"
-BASELINE_FILE = REPO_ROOT / "skeptic_gate" / "baseline_MyMethod.py"
+RESULTS_ROOT = REPO_ROOT / "sage" / "results"
+BASELINE_FILE = REPO_ROOT / "sage" / "baseline_MyMethod.py"
 
 # Cost-lever presets for this task. "cheap" runs the unlearning eval over 3 inner
 # models instead of 10 (faster, noisier) and is charged 0.3 budget units/eval, so

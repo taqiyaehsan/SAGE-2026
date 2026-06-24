@@ -32,7 +32,7 @@ from pathlib import Path
 
 from mlrc_adapter import MLRCWorld, Candidate, REPO_ROOT
 
-RESULTS_ROOT = REPO_ROOT / "skeptic_gate" / "results"
+RESULTS_ROOT = REPO_ROOT / "sage" / "results"
 
 
 def load_accepted(run_dir: Path) -> list[dict]:

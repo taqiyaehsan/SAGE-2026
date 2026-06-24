@@ -33,7 +33,7 @@ HERE = Path(__file__).resolve().parent
 
 def _load_method_class(method_path: str):
     """Import a method file by path and return its MyMethod class. The file does
-    `from base_method import BaseMethod`, so skeptic_gate/ must be importable."""
+    `from base_method import BaseMethod`, so sage/ must be importable."""
     if str(HERE) not in sys.path:
         sys.path.insert(0, str(HERE))
     spec = importlib.util.spec_from_file_location("candidate_method", method_path)
