@@ -1,0 +1,13 @@
+# data caches (auto-downloaded on first run)
+sage/_data_fmnist/
+sage/_data_mnist/
+# run outputs
+sage/results/
+# secrets
+sage/.env
+.env
+# python
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
