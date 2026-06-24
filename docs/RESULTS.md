@@ -27,7 +27,7 @@ rules are then replayed over that identical stream, so the comparison is a clean
 paired ablation with no extra LLM calls.
 
 All numbers are reproducible (commands at the bottom). Raw data per task:
-`results/skeptic_regime/<task>/` (`llm.json`, `methods_llm.csv`, `replay_llm.csv`,
+`sage/results/study_<task>/` (`llm.json`, `methods_llm.csv`, `replay_llm.csv`,
 `regime_eval.json/.csv`, `regime_curve_eval.png`).
 
 ---
@@ -57,7 +57,7 @@ preserved, so any accepted gain that vanishes is *purely* a measurement artifact
 We audit every accept against the full-eval truth; a "false positive" is an accept
 whose true gain is ≤ 0. 200 bootstrap trials per noise level.
 
-**MAGIC** (`results/skeptic_regime/magic/`):
+**MAGIC** (`sage/results/study_magic/`):
 
 | eval size | noise σ | greedy FP-rate | causal FP-rate | greedy final acc | causal final acc |
 |-----------|---------|----------------|----------------|------------------|------------------|
@@ -69,7 +69,7 @@ whose true gain is ≤ 0. 200 bootstrap trials per noise level.
 | 50   | 0.037 | 0.54 | 0.24 | 0.8640 | 0.8712 |
 | 25   | 0.069 | 0.41 | 0.17 | 0.8573 | 0.8678 |
 
-**FashionMNIST** (`results/skeptic_regime/fashionmnist/`):
+**FashionMNIST** (`sage/results/study_fashionmnist/`):
 
 | eval size | noise σ | greedy FP-rate | causal FP-rate | greedy final acc | causal final acc |
 |-----------|---------|----------------|----------------|------------------|------------------|
@@ -131,7 +131,7 @@ classic spurious-correlation setup (cf. IRM): the spurious cue (color) is predic
 in-distribution but anti-predictive under shift, while the invariant cue (digit shape)
 generalizes. The harness owns the test split; the agent never sees it.
 
-**What happened (`results/skeptic_regime/colored_mnist/`, fig `fig_spurious.png`):**
+**What happened (`sage/results/study_colored_mnist/`, fig `regime_curve_eval.png`):**
 
 | idx | method | val | test | GFLOPs |
 |-----|--------|-----|------|--------|
@@ -192,9 +192,9 @@ set, not more seeds.*
 ## Reproduce
 
 ```bash
-cd skeptic_gate
+cd sage
 
-# 1. the code-editing agent with the causal skeptic (needs OPENAI_API_KEY in .env)
+# 1. the code-editing agent with the skeptic gate (needs OPENAI_API_KEY in .env)
 python study.py fashionmnist llm 8 5
 python study.py magic llm 8 5
 python study.py colored_mnist llm 8 5      # the spurious-correlation stress test
@@ -203,9 +203,6 @@ python study.py colored_mnist llm 8 5      # the spurious-correlation stress tes
 python regime_sweep.py fashionmnist eval 8 200
 python regime_sweep.py magic eval 8 200
 python regime_sweep.py colored_mnist eval 8 200
-
-# 3. poster figures (auto-discovers all three tasks; colored_mnist -> fig_spurious.png)
-python make_poster_figs.py
 ```
 
 Each study writes `llm.json` + `methods_llm.csv` (score/Pareto table) +

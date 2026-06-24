@@ -49,6 +49,9 @@ cp .env.example .env                   # add your OPENAI_API_KEY
 python study.py fashionmnist llm 8 5   # add the `llm` flag
 ```
 
+Want a **different model, a local model, or your own agent**? The proposer is a
+one-method interface — see [`docs/CUSTOM_AGENT.md`](docs/CUSTOM_AGENT.md).
+
 **Run the headline noise sweep** (greedy vs skeptic false-discovery rate vs eval noise):
 ```bash
 python regime_sweep.py fashionmnist eval 8 200
@@ -123,5 +126,5 @@ and the integrity checks are in [`docs/MACHINE_UNLEARNING.md`](docs/MACHINE_UNLE
 
 ## Authors
 
-Taqiya Ehsan (Rutgers) · Luyuan Yang (Oklahoma) · Md Musfiqur Rahman (Purdue) ·
-Ziwei Jiang (Johns Hopkins). Machine Learning Summer School, NYC 2026.
+Taqiya Ehsan (Rutgers University) · Luyuan Yang (University of Oklahoma) · Md Musfiqur Rahman (Purdue University) ·
+Ziwei Jiang (Johns Hopkins University). Machine Learning Summer School, NYC 2026.

@@ -81,7 +81,7 @@ small to explain a 100× swing. The training path is the remaining explanation.
 ## How to reproduce the check
 
 ```bash
-cd skeptic_gate
+cd sage
 ../.venv/bin/python baseline_noise.py --n 8
 # wait, then run again later (or under load) and compare the two summaries
 ../.venv/bin/python baseline_noise.py --n 8
